@@ -16,6 +16,11 @@ CPU.ListROMS = False
 CPU.ROMsDir =  "ROMS/"
 CPU.ROMName = ""
 
+def StringCut(char,str):
+ for i in range(len(str)):
+  if str[0-i] == char:
+   return str[0-i+1:]
+
 def CPU_LoadFile(filename):
  with open(os.getcwd() + "/Emulator/" + CPU.ROMsDir + filename,"rb") as f:
   return f.read()
@@ -29,15 +34,15 @@ def CPU_ListDir(Dir,FileType):
    CPU.CurrentDir = os.getcwd() + "/Emulator/" + Dir + "*" + FileType
    CPU.ROMLIST = glob.glob(CPU.CurrentDir)
    for i in range(len(CPU.ROMLIST)):
-    print(CPU.ROMLIST[i][31:])
+    print(StringCut("/",CPU.ROMLIST[i]))
 
 def CPU_LocateROM(ROMNAME):
  CPU.CurrentDir = os.getcwd() + "/Emulator/" + CPU.ROMsDir
  CPU.ROMLIST = glob.glob(CPU.CurrentDir + "*" )
  for i in range(len(CPU.ROMLIST)):
-  if CPU.ROMLIST[i][31:] == "ROMS\\" + ROMNAME:
+  if StringCut("/",CPU.ROMLIST[i]) == "ROMS\\" + ROMNAME:
     return i
-  elif i == len(CPU.ROMLIST) and CPU.ROMLIST[i][31:] != CPU.ROMsDir + ROMNAME:
+  elif i == len(CPU.ROMLIST) and StringCut("/",CPU.ROMLIST[i]) != CPU.ROMsDir + ROMNAME:
     return None
 
 def CPU_LoadROM(ROMNAME):
