@@ -5,4 +5,4 @@
 
 # So when I first started coding the Emulator I was making it run ROMS via script .. Yeah not really how ROMS actually work.. so I learned how a CPU works in IRL computers as well as looking up how old Retro consoles worked.. and I saw that Hex code can be used for OPCODES ( Instruction/OPeration CODES) and IMMediate (which is just Data for the CPU) .. so I started implenting a Hex decoder and I first started with my own IS (Instruction Set) and I made the CPU decode the Hex OPCODES and make it run instructions to tell GPU to plot or tell CPU to store values in the REGisters
 
-# Total time on this Project (4/15/2018 - Present or 1 year, 9 months) , 2 years in and finally promising progress 
+# Total time on this Project (4/15/2018 - Present or 1 year, 9 months) , finally making promising progress 
