@@ -1,4 +1,4 @@
-# Emulator-Python-
+# Emulator-Python- Version: 0.01 Alpha
 # First Version started in 4/15/2018
 # The Emulator wasn't proper so I revamped it in 1/6/2019 (Yeah, a long ass time ... some of it was for the Emulator but most of the time was for other projects)
 # I Started making the Emulator in Hex in 12/1/2019
