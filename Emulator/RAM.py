@@ -8,6 +8,6 @@ RAM.Loaded = True
  #TICK
 
 def RAM_init():
-  RAM.bytes = 10
+  RAM.bytes = 16
   for i in range(RAM.bytes):
     RAM.RAM.append(0)

@@ -15,6 +15,7 @@ CPU.ROMLoaded = False
 CPU.ListROMS = False
 CPU.ROMsDir =  "ROMS/"
 CPU.ROMName = ""
+CPU.ROMType = ""
 
 def StringCut(char,str):
  for i in range(len(str)):
@@ -54,10 +55,12 @@ def CPU_LoadROM(ROMNAME):
     if ROMNAME[-2] == "p":
      ROMNAME = ROMNAME[:-3]
      Component.Dialog(CPU,None,"CPU","ROM TYPE: .py")
+     CPU.ROMType = "py"
      CPU.ROM = Require(CPU.ROMsDir[:-1]+"."+ROMNAME)
      CPU.ROMLoaded = True
     elif ROMNAME[-2] == "O":
      Component.Dialog(CPU,None,"CPU","ROM TYPE: .ROM")
+     CPU.ROMType = "ROM"
      CPU.ROM = CPU_LoadFile(ROMNAME)
      CPU.ROMLoaded = True
 
@@ -66,8 +69,14 @@ def CPU_tick():
   if CPU.ROMLoaded is True:
    time.sleep(CPU.Delay)
    #TICK
-   print(CPU.REGS[0][0])
-   CPU.REGS[0][0] += 1
+   #print(CPU.REGS[0][0])
+   #CPU.REGS[0][0] += 1
+   if CPU.ROMType == "py":
+    CPU.ROMData = CPU.ROM.ROM
+    print(CPU.ROMData[0])
+   elif CPU.ROMType == "ROM":
+    CPU.ROMData = CPU.ROM
+    print(CPU.ROMData[0])
   else: #ROM is not loaded
    CPU.List = input("[CPU]: List All ROMS?: ")
    if CPU.List.upper() == "Y":
