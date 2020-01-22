@@ -1,0 +1,90 @@
+-----------------------[Layout]-------------------------
+|INST|REGS|REG|IMMD|IMMD|IMMD|IMMD|IMMD|IMMD|IMMD|IMMD|
+|0x00|0x00|0x0|0x00|0x00|0x00|0x00|0x00|0x00|0x00|0x00|
+--------------------------------------------------------
+1 INST Slot
+2 REGS Slot |0xAB|0xC| A,B,C = 1-F
+IMM Slot 1
+IMM Slot 2
+IMM Slot 3
+IMM Slot 4 
+IMM Slot 6
+IMM Slot 7
+IMM Slot 8
+10.5 Bytes
+IMM Range (0-2,040)
+------------------------------------
+|INST|                      |DESCRIPTION|                                  |FUNCTION (How it works)|
+|0x00|NOP                    -- Literally does nothing                      (blank slate)  
+
+|0x01|LOAD                   -- LOAD IMM to REG                             (REG = IMM)
+
+|0x02|ADD                    -- ADD REG + IMM or REGA + REGB = REGC         (Same As DESC)    
+
+|0x03|SUBT                   -- SUBT REG - IMM or REGA - REGB = REGC        (Same As DESC)       
+
+|0x04|MULT                   -- MULT REG * IMM or REGA * REGB = REGC        (Same As DESC)                  
+
+|0x05|DIV                    -- DIV REG / IMM or REGA / REGB = REGC         (Same As DESC)                    
+
+|0x06|CMPLT                  -- Compare less than                           (REGA vs REGB, REG vs IMM) > if True go to next line, else skip
+
+|0x07|CMPGT                  -- Compare greater than                        (REGA vs REGB, REG vs IMM) > if true go to next line, else skip
+
+|0x08|CMPEQ                  -- Compare equal to                            (REGA vs REGB, REG vs IMM) if true go to next line , else skip
+
+|0x09|PRNT                   -- Prints REG and/or IMM                       (Just Prints)
+
+|0x0A|OR                     -- Does OR operation                           () if true go to next line , else skip
+
+|0x0B|NOR                    -- Does NOR operation                          () inverts all addresses
+
+|0x0C|AND                    -- Does AND operation                          () if true go to next line , else skip
+
+|0x0D|NAND                   -- Does NAND operation                         () if true go to next line , else skip
+
+|0x0E|NOT                    -- Does NOT operation                          ()
+
+|0x0F|XOR                    -- Does XOR operation                          () if true go to next line , else skip
+
+|0x10|XNOR                   -- Does XNOR operation                         () if true go to next line , else skip
+
+|0x11|PUSH                   -- Pushes Data to top of stack                 (inserts Data to REG[0])
+
+|0x12|POP                    -- Pops Data from top of stack                 (removes Data from REG[1])
+
+|0x13|AIMP                   -- Does Implies Operation                      (if REG A > 0 and REG B == 0 > true else false ) if true go to next line , else skip
+
+|0x14|BIMP                   -- Does Implies Operation                      (if REG B > 0 and REG A == 0 > true else false ) if true go to next line , else skip
+
+|0x15|ANIMP                  -- Does Nimplies Operation                     (if REG A > 0 and REG B == 0 > false else true ) if true go to next line , else skip
+
+|0x16|BNIMP                  -- Does Nimplies Operation                     (if REG B] > 0 and REG A == 0 > false else true ) if true go to next line , else skip
+
+|0x17|SLEEP                  -- Waits for IMM amount of secs                ( Just starts a Timer for IMM amount of secs)
+
+|0x18|DVCSND                 -- IMM Slot 1 is OPCODE                        (X = IMM1 + IMM2, Y = IMM3 + IMM4, R, G, B, A = IMM5, IMM6, IMM7, IMM8)
+
+
+
+0x00 -< GPU
+|INST|(IMM)                 |DESCRIPTION|                                  |FUNCTION (How it works)|
+|0x00|SETX                   -- REGS/IMM Slot 2 = X                         (Same As DESC)
+
+|0x01|SETY                   -- REGS/IMM Slot 2 = Y                         (Same As DESC)
+
+|0x02|SETR                   -- REGS/IMM Slot 2 = R                         (Same As DESC)
+
+|0x03|SETG                   -- REGS/IMM Slot 2 = G                         (Same As DESC)
+
+|0x04|SETB                   -- REGS/IMM Slot 2 = B                         (Same As DESC)
+
+|0x05|PLOT                   -- PLOTS PIXEL at X,Y,R,G,B (DOES NOT RENDER)  ()
+
+|0x06|UPDATE                 -- Renders all pixels regular or ScanLine      ()
+
+|0x07|SCAN                   -- Toggles ScanLine Rendering                  (Requesting help..., no ARGS required just instuction toggles)
+
+|0x08|PBP                    -- Toggles Pixel By Pixel Rendering            (when Update gets called Renders Pixel by Pixel)
+
+|0x09|SCALE                  -- Scales the pixels                           () 
