@@ -54,7 +54,8 @@ def CPU_LoadFile(filename):
    return f.read()
 
 def Require(FileName):
- return importlib.import_module(FileName)
+ return importlib.import_module(FileName) # ERROR End ModuleNotFoundError: No module named '/ROMS'
+
 
 def CPU_ListDir(Dir,FileType):
  CPU.ListROMS = False
@@ -100,10 +101,17 @@ def CPU_LoadROM(ROMNAME):
      ROMNAME = ROMNAME[:-3]
      Component.Dialog(CPU,None,"CPU","ROM TYPE: .py")
      CPU.ROMType = "py"
-     CPU.ROM = Require(CPU.ROMsDir[:-1]+"."+ROMNAME)
-     CPU.ROMData = CPU.ROM.ROM
-     Component.Dialog(CPU,None,"CPU","ROM Length: "+str(len(CPU.ROMData))+" Bytes")
-     CPU.ROMLoaded = True
+     print(CPU.ROMsDir[:-1]+"."+ROMNAME)
+     if sys.platform.startswith("linux"):
+      CPU.ROM = Require(CPU.ROMsDir[1:-1]+"."+ROMNAME) # ERROR
+      CPU.ROMData = CPU.ROM.ROM
+      Component.Dialog(CPU,None,"CPU","ROM Length: "+str(len(CPU.ROMData))+" Bytes")
+      CPU.ROMLoaded = True
+     else:
+      CPU.ROM = Require(CPU.ROMsDir[:-1]+"."+ROMNAME) # ERROR 
+      CPU.ROMData = CPU.ROM.ROM
+      Component.Dialog(CPU,None,"CPU","ROM Length: "+str(len(CPU.ROMData))+" Bytes")
+      CPU.ROMLoaded = True
     elif ROMNAME[-2] == "O":
      Component.Dialog(CPU,None,"CPU","ROM TYPE: .ROM")
      CPU.ROMType = "ROM"
@@ -168,7 +176,7 @@ def CPU_tick():
    CPU.ListROMS = True
   elif CPU.List.upper() == "N":
    CPU.RomName = input("[CPU]: Please Load A ROM: ")
-   CPU_LoadROM(CPU.RomName)
+   CPU_LoadROM(CPU.RomName) # ERROR Begin 
   if CPU.ListROMS == True:
    CPU_ListDir(CPU.ROMsDir,".py")
    CPU_ListDir(CPU.ROMsDir,".ROM")
