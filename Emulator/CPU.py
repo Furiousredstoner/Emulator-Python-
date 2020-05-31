@@ -19,6 +19,7 @@ CPU.Delay = 0.05
 CPU.Halt = False # Halt due to invalid instruction
 CPU.PRNTDATA = False # Prints ROM Data
 CPU.PRNTPC = False # Prints Program Counter
+CPU.PRNTREGS = False # Prints REG Data
 CPU.NoRepeat = True #ROM halts at end of program
 CPU.Debug = True # prints debug info
 CPU.Loaded = True # CPU is loaded
@@ -82,7 +83,7 @@ def CPU_LocateROM(ROMNAME):
     return None
  elif sys.platform.startswith("linux"):
   CPU.CurrentDir = os.getcwd() + CPU.ROMsDir
-  print("Scanning: " + CPU.CurrentDir)
+  #print("Scanning: " + CPU.CurrentDir)
   CPU.ROMLIST = glob.glob(CPU.CurrentDir + "*" )
   for i in range(len(CPU.ROMLIST)):
    if StringCut("/",CPU.ROMLIST[i]) == ROMNAME:
@@ -101,7 +102,7 @@ def CPU_LoadROM(ROMNAME):
      ROMNAME = ROMNAME[:-3]
      Component.Dialog(CPU,None,"CPU","ROM TYPE: .py")
      CPU.ROMType = "py"
-     print(CPU.ROMsDir[:-1]+"."+ROMNAME)
+     #print(CPU.ROMsDir[:-1]+"."+ROMNAME)
      if sys.platform.startswith("linux"):
       CPU.ROM = Require(CPU.ROMsDir[1:-1]+"."+ROMNAME) # Linux likes "folder.folder2.file
       CPU.ROMData = CPU.ROM.ROM
@@ -308,15 +309,20 @@ def CPU_tick():
   elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
    if CPU.Debug == True:
     Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  #Halt    
+   #Halt    
+  else:
    if CPU.Halt == True:
     if CPU.Debug == True:
      Component.Dialog(CPU,None,"CPU","INVALID INSTRUCTION:  ["+ToHex(CPU.REGS[1][0],True)+"]")
-    CPU_Halt("INVALID INSTRUCTION:" + "["+ToHex(CPU.REGS[1][0],True)+"]"+" AT PC: "+ToHex(CPU.REGS[0][0],True))
-  #Increment PC
+     CPU_Halt("INVALID INSTRUCTION:" + "["+ToHex(CPU.REGS[1][0],True)+"]"+" AT PC: "+ToHex(CPU.REGS[0][0],True))
+    else:
+     CPU_Halt("Unknown , Enable Debug for logging (CPU.py , Line 24)")
+    #Increment PC
+  if CPU.PRNTREGS == True:
+   print(CPU.REGS[2:])
   if CPU.REGS[0][0] != len(CPU.ROMData)-CPU.ROMBytes:
    CPU.REGS[0][0] += CPU.ROMBytes
   else:
    if CPU.NoRepeat == True:
     CPU_Halt("END OF PROGRAM")
-   CPU.REGS[0][0] = 0
+    CPU.REGS[0][0] = 0
