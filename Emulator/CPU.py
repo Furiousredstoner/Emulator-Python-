@@ -103,12 +103,12 @@ def CPU_LoadROM(ROMNAME):
      CPU.ROMType = "py"
      print(CPU.ROMsDir[:-1]+"."+ROMNAME)
      if sys.platform.startswith("linux"):
-      CPU.ROM = Require(CPU.ROMsDir[1:-1]+"."+ROMNAME) # ERROR
+      CPU.ROM = Require(CPU.ROMsDir[1:-1]+"."+ROMNAME) # Linux likes "folder.folder2.file
       CPU.ROMData = CPU.ROM.ROM
       Component.Dialog(CPU,None,"CPU","ROM Length: "+str(len(CPU.ROMData))+" Bytes")
       CPU.ROMLoaded = True
      else:
-      CPU.ROM = Require(CPU.ROMsDir[:-1]+"."+ROMNAME) # ERROR 
+      CPU.ROM = Require(CPU.ROMsDir[:-1]+"."+ROMNAME) # Windows likes "/folder/folder2.file
       CPU.ROMData = CPU.ROM.ROM
       Component.Dialog(CPU,None,"CPU","ROM Length: "+str(len(CPU.ROMData))+" Bytes")
       CPU.ROMLoaded = True
