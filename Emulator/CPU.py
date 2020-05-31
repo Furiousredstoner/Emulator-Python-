@@ -54,7 +54,7 @@ def CPU_LoadFile(filename):
    return f.read()
 
 def Require(FileName):
- return importlib.import_module(FileName) # ERROR End ModuleNotFoundError: No module named '/ROMS'
+ return importlib.import_module(FileName)
 
 
 def CPU_ListDir(Dir,FileType):
@@ -176,7 +176,7 @@ def CPU_tick():
    CPU.ListROMS = True
   elif CPU.List.upper() == "N":
    CPU.RomName = input("[CPU]: Please Load A ROM: ")
-   CPU_LoadROM(CPU.RomName) # ERROR Begin 
+   CPU_LoadROM(CPU.RomName)
   if CPU.ListROMS == True:
    CPU_ListDir(CPU.ROMsDir,".py")
    CPU_ListDir(CPU.ROMsDir,".ROM")
