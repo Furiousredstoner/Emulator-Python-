@@ -1,13 +1,14 @@
 print("CPU Loaded")
 from Component import *
 from RAM import *
+from GPU import *
 import time
 import glob
 import os
 import sys
 import importlib
-CPU = Component() 
- #          PCR  IST   1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
+CPU = Component()
+#           PCR  IST   1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
 CPU.REGS = [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]] 
 # PCR = Program CounteR, IST = InSTruction
 CPU.LREGActive = False
@@ -15,13 +16,13 @@ CPU.RREGActive = False
 CPU.AREGADDR = 0 
 CPU.BREGADDR = 0 
 CPU.CREGADDR = 0
-CPU.Delay = 0.05
+CPU.Delay = 0
 CPU.Halt = False # Halt due to invalid instruction
 CPU.PRNTDATA = False # Prints ROM Data
-CPU.PRNTPC = False # Prints Program Counter
+CPU.PRNTPC = False # Prints Program Counter - requires PRNTDATA to be True
 CPU.PRNTREGS = False # Prints REG Data
 CPU.NoRepeat = True #ROM halts at end of program
-CPU.Debug = True # prints debug info
+CPU.Debug = False # prints debug info
 CPU.Loaded = True # CPU is loaded
 CPU.ROMLoaded = False # if ROM is loaded
 CPU.ListROMS = False # if ROM's should be listed
@@ -30,7 +31,7 @@ CPU.EMUDir = "/Emulator/" # Directory of Emulator Folder
 CPU.ROMName = "" #Placeholder
 CPU.ROMType = "" #Placeholder
 CPU.ROMBytes = 11 # number of bytes of ROM length
-
+ 
 def StringCut(char,str):
  if sys.platform.startswith("win32"):
   for i in range(len(str)):
@@ -48,7 +49,8 @@ def StringCut(char,str):
 
 def CPU_LoadFile(filename):
  if sys.platform.startswith("win32"):
-  with open(os.getcwd() + CPU.EMUDir + CPU.ROMsDir + filename,"rb") as f:
+  #with open(os.getcwd() + CPU.EMUDir + CPU.ROMsDir + filename,"rb") as f:
+  with open(os.getcwd() + CPU.ROMsDir + filename,"rb") as f:
    return f.read()
  elif sys.platform.startswith("linux"):
   with open(os.getcwd() + CPU.ROMsDir + filename,"rb") as f:
@@ -61,7 +63,8 @@ def Require(FileName):
 def CPU_ListDir(Dir,FileType):
  CPU.ListROMS = False
  if sys.platform.startswith("win32"):
-  CPU.CurrentDir = os.getcwd() + CPU.EMUDir + Dir + "*" + FileType
+  #CPU.CurrentDir = os.getcwd() + CPU.EMUDir + Dir + "*" + FileType
+  CPU.CurrentDir= os.getcwd()+CPU.ROMsDir+"*"+FileType
   CPU.ROMLIST = glob.glob(CPU.CurrentDir)
   for i in range(len(CPU.ROMLIST)):
    print(StringCut("/",CPU.ROMLIST[i]))
@@ -73,7 +76,8 @@ def CPU_ListDir(Dir,FileType):
 
 def CPU_LocateROM(ROMNAME):
  if sys.platform.startswith("win32"):
-  CPU.CurrentDir = os.getcwd() + CPU.EMUDir + CPU.ROMsDir
+  #CPU.CurrentDir = os.getcwd() + CPU.EMUDir + CPU.ROMsDir
+  CPU.CurrentDir = os.getcwd() + CPU.ROMsDir
   print("Scanning: " + CPU.CurrentDir)
   CPU.ROMLIST = glob.glob(CPU.CurrentDir + "*" )
   for i in range(len(CPU.ROMLIST)):
@@ -83,7 +87,7 @@ def CPU_LocateROM(ROMNAME):
     return None
  elif sys.platform.startswith("linux"):
   CPU.CurrentDir = os.getcwd() + CPU.ROMsDir
-  #print("Scanning: " + CPU.CurrentDir)
+  print("Scanning: " + CPU.CurrentDir)
   CPU.ROMLIST = glob.glob(CPU.CurrentDir + "*" )
   for i in range(len(CPU.ROMLIST)):
    if StringCut("/",CPU.ROMLIST[i]) == ROMNAME:
@@ -126,7 +130,8 @@ def CPU_LoadROM(ROMNAME):
        Component.Dialog(CPU,"Error","CPU","Got ."+CPU.ROMType+" Expected .py or .ROM")
 
 def CPU_init():
-  RAM_init()
+ RAM_init()
+ GPU_init()
 
 def ToHex(num,prefix):
  if prefix == True:
@@ -171,6 +176,7 @@ def CPU_ActiveREGS(REGS):
   return None,None
      
 def CPU_tick():
+ GPU_tick()
  if CPU.ROMLoaded is False: #ROM is not loaded
   CPU.List = input("[CPU]: List All ROMS?: ")
   if CPU.List.upper() == "Y":
@@ -306,10 +312,16 @@ def CPU_tick():
   elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
    if CPU.Debug == True:
     Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
+  elif CPU.REGS[1][0] == 0x18: #PLACEHOLDER
    if CPU.Debug == True:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-   #Halt    
+    Component.Dialog(CPU,None,"CPU","Executing Instruction [DVCSND]")
+   _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
+   if CPU.CREGADDR is not None:
+    GPU_DVCSND(CPU.SLOT1,CPU.REGS[CPU.CREGADDR][0],CPU.SLOT3,CPU.SLOT4,CPU.SLOT5,CPU.SLOT6,CPU.SLOT7,CPU.SLOT8,CPU.SLOT9,CPU.SLOTA)
+   else:
+    GPU_DVCSND(CPU.SLOT1,CPU.SLOT2,CPU.SLOT3,CPU.SLOT4,CPU.SLOT5,CPU.SLOT6,CPU.SLOT7,CPU.SLOT8,CPU.SLOT9,CPU.SLOTA)
+########################################################################################
+   #Halt  
   else:
    if CPU.Halt == True:
     if CPU.Debug == True:

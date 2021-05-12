@@ -3,7 +3,7 @@
 |0x00|0x00|0x0|0x00|0x00|0x00|0x00|0x00|0x00|0x00|0x00|
 --------------------------------------------------------
 1 INST Slot
-2 REGS Slot |0xAB|0xC| A,B,C = 1-F
+3 REGS Slot |0xAB|0xC| A,B,C = 1-F
 IMM Slot 1
 IMM Slot 2
 IMM Slot 3
@@ -11,7 +11,7 @@ IMM Slot 4
 IMM Slot 6
 IMM Slot 7
 IMM Slot 8
-10.5 Bytes
+11 Bytes
 IMM Range (0-2,040)
 ------------------------------------
 |INST|                      |DESCRIPTION|                                  |FUNCTION (How it works)|
@@ -63,28 +63,25 @@ IMM Range (0-2,040)
 
 |0x17|SLEEP                  -- Waits for IMM amount of secs                ( Just starts a Timer for IMM amount of secs)
 
-|0x18|DVCSND                 -- IMM Slot 1 is OPCODE                        (X = IMM1 + IMM2, Y = IMM3 + IMM4, R, G, B, A = IMM5, IMM6, IMM7, IMM8)
+|0x18|DVCSND                 -- IMM Slot 1 is OPCODE                        (Sends an OPCODE to Specified Device)
 
+|0x19|DVCRECV                -- IMM Slot 1 is OPCODE                        (Recieves Data from Specified Device to REGS)
 
 
 0x00 -< GPU
 |INST|(IMM)                 |DESCRIPTION|                                  |FUNCTION (How it works)|
-|0x00|SETX                   -- REGS/IMM Slot 2 = X                         (Same As DESC)
+|0x00|SETX                   -- REGC = X                                    (Same As DESC)
 
-|0x01|SETY                   -- REGS/IMM Slot 2 = Y                         (Same As DESC)
+|0x01|SETY                   -- REGC = Y                                    (Same As DESC)
 
-|0x02|SETR                   -- REGS/IMM Slot 2 = R                         (Same As DESC)
+|0x02|SETRGB                 -- IMM SLOT 1+2+3 = R,G,B                      (Same As DESC)
 
-|0x03|SETG                   -- REGS/IMM Slot 2 = G                         (Same As DESC)
+|0x03|GETRGB                 -- Grabs RGB values at specified location      ()
 
-|0x04|SETB                   -- REGS/IMM Slot 2 = B                         (Same As DESC)
+|0x04|PLOT                   -- PLOTS PIXEL at X,Y,R,G,B (DOES NOT RENDER)  ()
 
-|0x05|PLOT                   -- PLOTS PIXEL at X,Y,R,G,B (DOES NOT RENDER)  ()
+|0x05|UPDATE                 -- Renders all pixels regular or ScanLine      ()
 
-|0x06|UPDATE                 -- Renders all pixels regular or ScanLine      ()
+|0x06|SCAN                   -- Toggles ScanLine Rendering                  (Requesting help..., no ARGS required just instuction toggles)
 
-|0x07|SCAN                   -- Toggles ScanLine Rendering                  (Requesting help..., no ARGS required just instuction toggles)
-
-|0x08|PBP                    -- Toggles Pixel By Pixel Rendering            (when Update gets called Renders Pixel by Pixel)
-
-|0x09|SCALE                  -- Scales the pixels                           () 
+|0x07|SCALE                  -- Scales the pixels                           () 
