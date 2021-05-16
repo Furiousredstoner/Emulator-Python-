@@ -17,7 +17,7 @@ CPU.AREGADDR = 0
 CPU.BREGADDR = 0 
 CPU.CREGADDR = 0
 CPU.Delay = 0
-CPU.Halt = False # Halt due to invalid instruction
+CPU.Halt = True # Halt due to invalid instruction
 CPU.PRNTDATA = False # Prints ROM Data
 CPU.PRNTPC = False # Prints Program Counter - requires PRNTDATA to be True
 CPU.PRNTREGS = False # Prints REG Data
@@ -133,58 +133,174 @@ def CPU_init():
  RAM_init()
  GPU_init()
 
-def ToHex(num, prefix=False):
+def ToHex(num,prefix=False):
  if prefix:
   if num <= 0x0F:
    return "0x0"+hex(num).upper()[2:]
-  return "0x"+hex(num).upper()[2:]
- if num <= 0x0F:
-  return "0"+hex(num).upper()[2:]
- return hex(num).upper()[2:]
+  else:
+   return "0x"+hex(num).upper()[2:]
+ else:
+  if num <= 0x0F:
+    return "0"+hex(num).upper()[2:]
+  else:
+   return hex(num).upper()[2:]
 
 
 def CPU_Halt(reason):
  Component.Dialog(CPU,"Error","CPU","CPU HALTED:")
  Component.Dialog(CPU,"Error","CPU","CAUSE OF HALT: "+ reason)
- CPU.ROMLoaded = False 
+ CPU.ROMLoaded = False
 
-CPU_CACHED = {}
 def CPU_ActiveREGS(REGS):
- if REGS in CPU_CACHED:
-  return CPU_CACHED[REGS]
-    
- hexed = ToHex(REGS)
- LREG = int(hexed[0],16)
- RREG = int(hexed[1],16)
-
- CPU.LREGActive = bool(LREG)
- CPU.RREGActive = bool(RREG)
-
- if CPU.LREGActive and not CPU.RREGActive:
-  CPU_CACHED[REGS] = (LREG + 1, None)
- elif not CPU.LREGActive and CPU.RREGActive:
-  CPU_CACHED[REGS] = (None, RREG + 1)
- elif CPU.LREGActive and CPU.RREGActive:
-  CPU_CACHED[REGS] = (LREG + 1, RREG + 1)
+ LREG = int(ToHex(REGS,False)[0],16)
+ RREG = int(ToHex(REGS,False)[1],16)
+ if LREG > 0 and RREG == 0:
+   CPU.LREGActive = True
+   CPU.RREGActive = False
+ elif RREG > 0 and LREG == 0:
+   CPU.RREGActive = True
+   CPU.LREGActive = False
+ elif RREG > 0 and LREG > 0:
+   CPU.RREGActive = True
+   CPU.LREGActive = True
  else:
-  CPU_CACHED[REGS] = (None, None)
- return CPU_CACHED[REGS]
-     
+   CPU.LREGActive = False
+   CPU.RREGActive = False
+ if   CPU.LREGActive is True and CPU.RREGActive is False:
+  return LREG + 1, None
+ elif CPU.LREGActive is False and CPU.RREGActive is True:
+  return None, RREG + 1
+ elif CPU.LREGActive is True and CPU.RREGActive is True:
+  return LREG + 1 ,RREG + 1
+ else:
+  return None,None
+ 
+def CPU_LOAD(): #LOAD
+ if CPU.Debug:
+  Component.Dialog(CPU,None,"CPU","Executing Instruction [LOAD]")
+ CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
+ if CPU.AREGADDR is not None:
+  CPU.REGS[CPU.AREGADDR][0] = (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) #LOAD A
+ if CPU.BREGADDR is not None:
+  CPU.REGS[CPU.BREGADDR][0] = (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) #LOAD B
+ _,CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
+ if CPU.CREGADDR is not None:
+  CPU.REGS[CPU.CREGADDR][0] = (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) #LOAD C
+###########################################################################################################################
+def CPU_ADD(): #ADD
+ if CPU.Debug:
+  Component.Dialog(CPU,None,"CPU","Executing Instruction [ADD]")
+ CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
+ _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
+ if CPU.AREGADDR is not None and CPU.BREGADDR is not None:  
+  if (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) > 0:
+   if CPU.CREGADDR is not None:
+    CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] + (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA)
+   else:
+    CPU_Halt("REG C is not defined")
+  else:
+   if CPU.CREGADDR is not None:
+    CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] + CPU.REGS[CPU.BREGADDR][0] # A + B = C
+   else:
+    CPU_Halt("REG C is not defined")
+###########################################################################################################################
+def CPU_SUBT(): #SUBT
+ if CPU.Debug:
+  Component.Dialog(CPU,None,"CPU","Executing Instruction [SUBT]")
+ CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
+ _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
+ if CPU.AREGADDR is not None and CPU.BREGADDR is not None:  
+  if (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) > 0:
+   if CPU.CREGADDR is not None:
+    CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] - (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA)
+   else:
+    CPU_Halt("REG C is not defined")
+  else:
+   if CPU.CREGADDR is not None:
+    CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] - CPU.REGS[CPU.BREGADDR][0] # A - B = C
+   else:
+    CPU_Halt("REG C is not defined")
+###########################################################################################################################
+def CPU_MULT(): #MULT
+ if CPU.Debug:
+  Component.Dialog(CPU,None,"CPU","Executing Instruction [MULT]")
+ CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
+ _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
+ if CPU.AREGADDR is not None and CPU.BREGADDR is not None:  
+  if (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) > 0:
+   if CPU.CREGADDR is not None:
+    CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] * (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA)
+   else:
+    CPU_Halt("REG C is not defined")
+  else:
+   if CPU.CREGADDR is not None:
+    CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] * CPU.REGS[CPU.BREGADDR][0] # A * B = C
+   else:
+    CPU_Halt("REG C is not defined")
+###########################################################################################################################
+def CPU_DIV(): #DIV
+ if CPU.Debug:
+  Component.Dialog(CPU,None,"CPU","Executing Instruction [DIV]")
+ CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
+ _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
+ if CPU.AREGADDR is not None and CPU.BREGADDR is not None:  
+  if (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) > 0:
+   if CPU.CREGADDR is not None:
+    CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] / (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA)
+   else:
+    CPU_Halt("REG C is not defined")
+  else:
+   if CPU.CREGADDR is not None:
+    CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] / CPU.REGS[CPU.BREGADDR][0] # A / B = C
+   else:
+    CPU_Halt("REG C is not defined") 
+###########################################################################################################################
+def CPU_DVCSND(): #DVCSND
+ if CPU.Debug:
+  Component.Dialog(CPU,None,"CPU","Executing Instruction [DVCSND]")
+ GPU_DVCSND(CPU.SLOT3,CPU.SLOT4,CPU.SLOT5,CPU.SLOT6,CPU.SLOT7,CPU.SLOT8,CPU.SLOT9,CPU.SLOTA)
+###########################################################################################################################
+def CPU_PLCHDR():
+ return True
+#                             |INDX|  INST
+CPU.OPCODELIST = [CPU_LOAD,   #0x00   0x01
+                  CPU_ADD,    #0x01   0x02
+                  CPU_SUBT,   #0x02   0x03
+                  CPU_MULT,   #0x03   0x04
+                  CPU_DIV,    #0x04   0x05
+                  CPU_PLCHDR, #0x05   0x06
+                  CPU_PLCHDR, #0x06   0x07
+                  CPU_PLCHDR, #0x07   0x08
+                  CPU_PLCHDR, #0x08   0x09
+                  CPU_PLCHDR, #0x09   0x0A
+                  CPU_PLCHDR, #0x0A   0x0B
+                  CPU_PLCHDR, #0x0B   0x0C
+                  CPU_PLCHDR, #0x0C   0x0D
+                  CPU_PLCHDR, #0x0D   0x0E
+                  CPU_PLCHDR, #0x0E   0x0F
+                  CPU_PLCHDR, #0x0F   0x10
+                  CPU_PLCHDR, #0x10   0x11
+                  CPU_PLCHDR, #0x11   0x12
+                  CPU_PLCHDR, #0x12   0x13
+                  CPU_PLCHDR, #0x13   0x14
+                  CPU_PLCHDR, #0x14   0x15
+                  CPU_PLCHDR, #0x15   0x16
+                  CPU_PLCHDR, #0x16   0x17
+                  CPU_DVCSND] #0x17   0x18
 def CPU_tick():
  GPU_tick()
- if not CPU.ROMLoaded: #ROM is not loaded
-  CPU.List = "N" #input("[CPU]: List All ROMS?: ")
+ if CPU.ROMLoaded is False: #ROM is not loaded
+  CPU.List = input("[CPU]: List All ROMS?: ")
   if CPU.List.upper() == "Y":
    CPU.ListROMS = True
   elif CPU.List.upper() == "N":
-   CPU.RomName = "test.ROM" #input("[CPU]: Please Load A ROM: ")
+   CPU.RomName = input("[CPU]: Please Load A ROM: ")
    CPU_LoadROM(CPU.RomName)
   if CPU.ListROMS:
    CPU_ListDir(CPU.ROMsDir,".py")
    CPU_ListDir(CPU.ROMsDir,".ROM")
- if CPU.ROMLoaded:
-  if CPU.Delay:
-      time.sleep(CPU.Delay)
+ if CPU.ROMLoaded is True:
+  #time.sleep(CPU.Delay)
   #FETCH
   CPU.REGS[1][0]  = CPU.ROMData[CPU.REGS[0][0]+0]  #INST
   CPU.SLOT1       = CPU.ROMData[CPU.REGS[0][0]+1]  #REGS AB
@@ -199,125 +315,15 @@ def CPU_tick():
   CPU.SLOTA       = CPU.ROMData[CPU.REGS[0][0]+10] #IMM 8
   if CPU.PRNTDATA:
    if CPU.PRNTPC:
-    print(" "+ToHex(CPU.REGS[0][0]), ToHex(CPU.REGS[1][0]), ToHex(CPU.SLOT1), ToHex(CPU.SLOT2), ToHex(CPU.SLOT3), ToHex(CPU.SLOT4), ToHex(CPU.SLOT5), ToHex(CPU.SLOT6), ToHex(CPU.SLOT7), ToHex(CPU.SLOT8), ToHex(CPU.SLOT9), ToHex(CPU.SLOTA)+" ")
+    print(" "+ToHex(CPU.REGS[0][0],False), ToHex(CPU.REGS[1][0],False), ToHex(CPU.SLOT1,False), ToHex(CPU.SLOT2,False), ToHex(CPU.SLOT3,False), ToHex(CPU.SLOT4,False), ToHex(CPU.SLOT5,False), ToHex(CPU.SLOT6,False), ToHex(CPU.SLOT7,False), ToHex(CPU.SLOT8,False), ToHex(CPU.SLOT9,False), ToHex(CPU.SLOTA,False)+" ")
    else:
-    print(ToHex(CPU.REGS[1][0]), ToHex(CPU.SLOT1), ToHex(CPU.SLOT2), ToHex(CPU.SLOT3), ToHex(CPU.SLOT4), ToHex(CPU.SLOT5), ToHex(CPU.SLOT6), ToHex(CPU.SLOT7), ToHex(CPU.SLOT8), ToHex(CPU.SLOT9), ToHex(CPU.SLOTA)+" ")
-  #DECODE
-  if   CPU.REGS[1][0] == 0x00: #NOP
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [NOP]")
-    ##############################################               #EXECUTE
-  elif CPU.REGS[1][0] == 0x01: #LOAD                               #\/
-   if CPU.Debug == True:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [LOAD]")
-   CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
-   if CPU.AREGADDR is not None:
-    CPU.REGS[CPU.AREGADDR][0] = (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) #LOAD A
-   if CPU.BREGADDR is not None:
-    CPU.REGS[CPU.BREGADDR][0] = (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) #LOAD B
-   _,CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
-   if CPU.CREGADDR is not None:
-    CPU.REGS[CPU.CREGADDR][0] = (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) #LOAD C
-    ##############################################
-  elif CPU.REGS[1][0] == 0x02: #ADD
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [ADD]")
-   CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
-   _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
-   if CPU.AREGADDR is not None and CPU.BREGADDR is not None:  
-    if (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) > 0:
-     if CPU.CREGADDR is not None:
-      CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] + (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA)
-     else:
-      CPU_Halt("REG C is not defined")
-    else:
-     if CPU.CREGADDR is not None:
-      CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] + CPU.REGS[CPU.BREGADDR][0] # A + B = C
-     else:
-      CPU_Halt("REG C is not defined")
-##############################################
-  elif CPU.REGS[1][0] == 0x03: #SUBT
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [SUBT]")
-   CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
-   _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
-   if CPU.AREGADDR is not None and CPU.BREGADDR is not None:  
-    if (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) > 0:
-     if CPU.CREGADDR is not None:
-      CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] - (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA)
-     else:
-      CPU_Halt("REG C is not defined")
-    else:
-     if CPU.CREGADDR is not None:
-      CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] - CPU.REGS[CPU.BREGADDR][0] # A - B = C
-     else:
-      CPU_Halt("REG C is not defined")
-##############################################
-  elif CPU.REGS[1][0] == 0x04: #MULT
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [MULT]")
-   CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
-   _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
-   if CPU.AREGADDR is not None and CPU.BREGADDR is not None:  
-    if (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) > 0:
-     if CPU.CREGADDR is not None:
-      CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] * (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA)
-     else:
-      CPU_Halt("REG C is not defined")
-    else:
-     if CPU.CREGADDR is not None:
-      CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] * CPU.REGS[CPU.BREGADDR][0] # A * B = C
-     else:
-      CPU_Halt("REG C is not defined")
-      ##############################################
-  elif CPU.REGS[1][0] == 0x05: #DIV
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [DIV]")
-   CPU.AREGADDR, CPU.BREGADDR = CPU_ActiveREGS(CPU.SLOT1)
-   _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
-   if CPU.AREGADDR is not None and CPU.BREGADDR is not None:  
-    if (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA) > 0:
-     if CPU.CREGADDR is not None:
-      CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] / (CPU.SLOT3+CPU.SLOT4+CPU.SLOT5+CPU.SLOT6+CPU.SLOT7+CPU.SLOT8+CPU.SLOT9+CPU.SLOTA)
-     else:
-      CPU_Halt("REG C is not defined")
-    else:
-     if CPU.CREGADDR is not None:
-      CPU.REGS[CPU.CREGADDR][0] = CPU.REGS[CPU.AREGADDR][0] / CPU.REGS[CPU.BREGADDR][0] # A / B = C
-     else:
-      CPU_Halt("REG C is not defined") 
-      ##############################################
-  elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  elif CPU.REGS[1][0] == 0xFF: #PLACEHOLDER
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [PlaceHolder]")
-  elif CPU.REGS[1][0] == 0x18: #PLACEHOLDER
-   if CPU.Debug:
-    Component.Dialog(CPU,None,"CPU","Executing Instruction [DVCSND]")
-   _, CPU.CREGADDR = CPU_ActiveREGS(CPU.SLOT2)
-   if CPU.CREGADDR is not None:
-    GPU_DVCSND(CPU.SLOT1,CPU.REGS[CPU.CREGADDR][0],CPU.SLOT3,CPU.SLOT4,CPU.SLOT5,CPU.SLOT6,CPU.SLOT7,CPU.SLOT8,CPU.SLOT9,CPU.SLOTA)
-   else:
-    GPU_DVCSND(CPU.SLOT1,CPU.SLOT2,CPU.SLOT3,CPU.SLOT4,CPU.SLOT5,CPU.SLOT6,CPU.SLOT7,CPU.SLOT8,CPU.SLOT9,CPU.SLOTA)
+    print(ToHex(CPU.REGS[1][0],False), ToHex(CPU.SLOT1,False), ToHex(CPU.SLOT2,False), ToHex(CPU.SLOT3,False), ToHex(CPU.SLOT4,False), ToHex(CPU.SLOT5,False), ToHex(CPU.SLOT6,False), ToHex(CPU.SLOT7,False), ToHex(CPU.SLOT8,False), ToHex(CPU.SLOT9,False), ToHex(CPU.SLOTA,False)+" ")
 ########################################################################################
-   #Halt  
+  #DECODE
+  if CPU.REGS[1][0] > 0x00 and CPU.REGS[1][0] <= len(CPU.OPCODELIST) :
+   CPU.OPCODELIST[CPU.REGS[1][0]-1]()
+########################################################################################
+  #Halt  
   else:
    if CPU.Halt:
     if CPU.Debug:

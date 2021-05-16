@@ -2,12 +2,19 @@
 |INST|REGS|REG|IMMD|IMMD|IMMD|IMMD|IMMD|IMMD|IMMD|IMMD|
 |0x00|0x00|0x0|0x00|0x00|0x00|0x00|0x00|0x00|0x00|0x00|
 --------------------------------------------------------
+
+
+|IMMD|IMMD|IMMD|IMMD|IMMD|IMMD|IMMD|
+|0x00|0x00|0x00|0x00|0x00|0x00|0x00|
+   X    X    X    X    Y    Y    Y
+
 1 INST Slot
-3 REGS Slot |0xAB|0xC| A,B,C = 1-F
+2 REGS Slot |0xAB|0xC| A,B,C = 1-F
 IMM Slot 1
 IMM Slot 2
 IMM Slot 3
 IMM Slot 4 
+IMM Slot 5
 IMM Slot 6
 IMM Slot 7
 IMM Slot 8
@@ -70,9 +77,7 @@ IMM Range (0-2,040)
 
 0x00 -< GPU
 |INST|(IMM)                 |DESCRIPTION|                                  |FUNCTION (How it works)|
-|0x00|SETX                   -- REGC = X                                    (Same As DESC)
-
-|0x01|SETY                   -- REGC = Y                                    (Same As DESC)
+|0x00|SETXY                  -- IMM SLOT 2-5 = X | IMM SLOT 6-8 = Y         (Same As DESC)
 
 |0x02|SETRGB                 -- IMM SLOT 1+2+3 = R,G,B                      (Same As DESC)
 
